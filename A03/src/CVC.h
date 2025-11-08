@@ -12,10 +12,14 @@ namespace CVC {
     static const int VIDEO_WIDTH    = 320;      //we will use these values for BOTH cam and video
     static const int VIDEO_HEIGHT   = 240;
 
-    static const int VIDEO_BORDER_SIZE      = 10;
+    static const int GAME_SCREEN_WIDTH  = 640;
+    static const int GAME_SCREEN_HEIGHT = 480;
+
+    static const int VIDEO_BORDER_SIZE  = 10;
 
     typedef enum TYPE {
         APP_VIDEO,            //live feed
-        APP_CAM           //simulated feed
+        APP_CAM,           //simulated feed
+        APP_GAME
     } APP_MODE;
 };

@@ -9,6 +9,13 @@
 
 class ofApp : public ofBaseApp{
 	public:
+
+		// 3D Scene 
+		ofEasyCam m_camera;
+		ofLight m_light;
+		ofMaterial m_material;
+
+
 		ofVideoPlayer m_videoPlayer;
 		ofVideoGrabber m_videoGrabber;
 		bool m_videoResolutionConflict;		//do we need to re-size our video before we process?
@@ -16,6 +23,12 @@ class ofApp : public ofBaseApp{
 		bool m_camPaused;					//pausing our camera feed
 		
 		ofxCvContourFinder m_contourFinder;
+
+		// store movement data for ps move conts
+		ofVec2f m_controller1Move;
+		ofVec2f m_controller2Move;
+		float m_smoothAngle = 0.0f;
+		float m_smoothScale = 1.0f;
 
 		//CV images
 		ofxCvColorImage		m_colorImage;
@@ -30,6 +43,7 @@ class ofApp : public ofBaseApp{
 
 		//we want to select which color we are tracking within the video
 		float m_trackedColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };	//ofxImgui requires color in this form
+		float m_trackedColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		//app modes
 		CVC::APP_MODE m_appMode;				//current app state
