@@ -5,7 +5,7 @@
 # Binaries
 **/obj/
 **/*.so
-!**/libfmod.so
+# !**/libfmod.so
 **/*.ini
 **/*.qbs
 **/bin/A0*

@@ -22,7 +22,7 @@ void ofApp::setup()
     // IMPORTANT TIP: Do not use the 20 that I have here, find a value that works well for your chosen song.
     // You want the lowest value that gives you the ability to clearly isolate the features of your song that
     // are interested in
-    m_audioAnalyser.init("lacrimosa.mp3", 20 );
+    m_audioAnalyser.init("lacrimosa.mp3", 40 );
 	m_audioAnalyser.setLoop(true);
 	m_audioAnalyser.play();
 }
@@ -62,19 +62,19 @@ void ofApp::draw()
     float drums = m_audioAnalyser.getLinearAverage( 0 ); 
 
     // you can add multiple bins together if you notice that two have activity when there's something you would like to track
-    float tone1 = m_audioAnalyser.getLinearAverage( 5 );
-    float tone2 = m_audioAnalyser.getLinearAverage( 7 );
-    float snare = m_audioAnalyser.getLinearAverage( 10 );
+    float lowV = m_audioAnalyser.getLinearAverage( 3 );
+    float highV = m_audioAnalyser.getLinearAverage( 7 );
+    float violin = m_audioAnalyser.getLinearAverage( 2 );
 
     // Advanced: can also get a custom average for a frequency range if you know the frequencies (can get them from mousing over the full spectrum)
     // float customAverage = m_audioAnalyser.getAvgForFreqRange( 128.0f, 300.0f );
 
     // Draw circles to indicate activity in the frequency ranges we are interested in
     // Must be remapped using the ranges of activity that we want
-    m_circle1Brightness = ofMap( drums, 143.0f, 200.0f, 0.0f, 1.0f, true );
-    m_circle2Brightness = ofMap( tone1, 83.0f, 116.0f, 0.0f, 1.0f, true );
-    m_circle3Brightness = ofMap( tone2, 40.0f, 56.0f, 0.0f, 1.0f, true );
-    m_circle4Brightness = ofMap( snare, 16.0f, 23.0f, 0.0f, 1.0f, true );
+    m_circle1Brightness = ofMap( drums, 5.0f, 200.0f, 0.0f, 1.0f, true );
+    m_circle2Brightness = ofMap( lowV, 0.0f, 100.0f, 0.0f, 1.0f, true );
+    m_circle3Brightness = ofMap( highV, 0.0f, 100.0f, 0.0f, 1.0f, true );
+    m_circle4Brightness = ofMap( violin, 5.0f, 50.0f, 0.0f, 1.0f, true );
 
     // Draw circles to indicate activity in the frequency ranges we are interested in
     ofSetColor( ofFloatColor( m_circle1Brightness, 0.0f, 0.0f ) );
@@ -90,6 +90,10 @@ void ofApp::draw()
     ofDrawCircle( 950, 100, 50 );
 
     ofSetColor( ofColor::white );
+    ofDrawBitmapString( "Drum and Brass", 445, 200 );
+    ofDrawBitmapString( "Low Vocals", 610, 200 );
+    ofDrawBitmapString( "High Vocals", 760, 200 );
+    ofDrawBitmapString( "Strings", 925, 200 );
 
     // song time in seconds. Can use m_soundPlayer.setPositionMS( time ) to jump to a specific time
     float songTimeSeconds = m_audioAnalyser.getPositionMS() / 1000.0f;

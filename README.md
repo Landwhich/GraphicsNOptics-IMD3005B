@@ -1,5 +1,5 @@
 ## IMD 3005B - Graphics and Optics Class
-Here is where I'll contain all my projects for IMD3005B a class focused on fundamental mechatonics concepts, graphical programming and some simple optics. The course work uses OF (OpenFrameworks) Library: <a href="https://openframeworks.cc/">OpenFrameworks.cc</a> 
+Here is where I'll contain all my projects for IMD3005B, a class focused on fundamental mechatronics concepts, graphical programming and some simple optics. The coursework uses the OF (OpenFrameworks) Library: <a href="https://openframeworks.cc/">OpenFrameworks.cc</a> 
 
 <u>the repository should be cloned inside of:</u> ``` /of_<version number>_<system>_release/apps/ ```
 
