@@ -5,7 +5,7 @@ void ofApp::setup()
 	ofSetVerticalSync(true);
     ofSetWindowShape( Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT );
 
-    visualizerState = false;
+    visualizerState = true;
 
     drumsPlaying = false;
     lowVPlaying = false;
@@ -43,6 +43,15 @@ void ofApp::setup()
     m_light.setup();
     m_light.setPosition(300, 300, 600);
 
+    m_drumImage.load("icons/drum-512x512.png");
+    m_lowVImage.load("icons/low-note-512x512.png");
+    m_highVImage.load("icons/high-note-200x200.png");
+    m_violinImage.load("icons/violin-512x512.png");
+    m_drumImage.setAnchorPercent(0.5, 0.5);
+    m_lowVImage.setAnchorPercent(0.5, 0.5);
+    m_highVImage.setAnchorPercent(0.5, 0.5);
+    m_violinImage.setAnchorPercent(0.5, 0.5);
+
     ofLoadImage(m_violinTexture, "violin_col.png");
     m_violin.load("violinModelNoStrings.obj");
     m_string1.load("string1.obj");
@@ -60,9 +69,11 @@ void ofApp::setup()
     m_string4.disableMaterials();
 
     // Lock cam in place
-    // m_camera.setRotationSensitivity(0, 0, 0);
-    // m_camera.setScale(1);
-    // m_camera.setTranslationSensitivity(0, 0, 0);
+    m_camera.setRotationSensitivity(0, 0, 0);
+    m_camera.setScale(1);
+    m_camera.setTranslationSensitivity(0, 0, 0);
+
+    m_smoothViolinScale = 1;
 }
 
 void ofApp::update() 
@@ -83,6 +94,21 @@ void ofApp::update()
     (violin > 2.0f) ? violinPlaying = true : violinPlaying = false;
 
     if (totalScore < 0) totalScore = 0;
+
+    m_volScale = ofLerp(m_smoothScale, ofMap(m_audioAnalyser.getMixLevel()*100.0f, 0, 50.0f, 1, 1.3), 0.1f);
+    m_smoothDrumsAnim = ofLerp(m_smoothDrumsAnim, drumsPlaying, 0.25f);
+    m_smoothLowVAnim = ofLerp(m_smoothLowVAnim, lowVPlaying, 0.25f);
+    m_smoothHighVAnim = ofLerp(m_smoothHighVAnim, highVPlaying, 0.25f);
+    m_smoothViolinAnim = ofLerp(m_smoothViolinAnim, violinPlaying, 0.25f);
+
+    if (songTimeSeconds < 50) setViolinScaleState(Constants::SONG_STAGES::START);
+    else if (songTimeSeconds < 55) setViolinScaleState(Constants::SONG_STAGES::OUT);
+    else if (songTimeSeconds < 75) setViolinScaleState(Constants::SONG_STAGES::FULLOUT);
+    else if (songTimeSeconds < 130) setViolinScaleState(Constants::SONG_STAGES::OUT);
+    else if (songTimeSeconds < 150) setViolinScaleState(Constants::SONG_STAGES::REST);
+    else if (songTimeSeconds < 160) setViolinScaleState(Constants::SONG_STAGES::FULL);
+    else if (songTimeSeconds < 175) setViolinScaleState(Constants::SONG_STAGES::REST);
+    else setViolinScaleState(Constants::SONG_STAGES::FULLOUT);
 }
 
 
@@ -151,9 +177,12 @@ void ofApp::draw()
         m_camera.begin();
         m_light.enable();
 
+        //Whole model
         ofPushMatrix();
-            ofRotateDeg(130, 1, 0, 0);
+            ofRotateDeg(130.0f, 1, 0, 0);
+            ofScale(m_volScale);
             ofScale(3);
+            ofScale(m_smoothViolinScale);
             ofTranslate(0, 10 ,10);
             m_violinTexture.bind();
             m_violin.drawFaces();
@@ -179,10 +208,54 @@ void ofApp::draw()
         m_camera.end();
         ofDisableDepthTest();
 
-        ofSetColor(255, ofMap(totalScore, 0.0, 100.0f, 255.0, 0.0, true), ofMap(totalScore, 0.0, 100.0f, 255.0, 0.0, true));
+        ofSetColor(255, ofMap(totalScore, 0.0, 1000.0f, 255.0, 0.0, true), ofMap(totalScore, 0.0, 100.0f, 255.0, 0.0, true));
         bearDays.drawString("Score: " + ofToString((int)totalScore), Constants::WINDOW_WIDTH/2 - bearDays.stringWidth("Score: " + ofToString((int)totalScore))/2, Constants::WINDOW_HEIGHT*0.15);
+
+        ofSetColor(155);
+        ofDrawCircle(Constants::WINDOW_WIDTH*1/5, Constants::WINDOW_HEIGHT*.8, 0, 85);
+        ofDrawCircle(Constants::WINDOW_WIDTH*2/5, Constants::WINDOW_HEIGHT*.8, 0, 85);
+        ofDrawCircle(Constants::WINDOW_WIDTH*3/5, Constants::WINDOW_HEIGHT*.8, 0, 85);
+        ofDrawCircle(Constants::WINDOW_WIDTH*4/5, Constants::WINDOW_HEIGHT*.8, 0, 85);
+
+        ofSetColor(75, 0, 0);
+        ofDrawCircle(Constants::WINDOW_WIDTH*1/5, Constants::WINDOW_HEIGHT*.8, 0, 75);
+        ofSetColor(75, 75, 0);
+        ofDrawCircle(Constants::WINDOW_WIDTH*2/5, Constants::WINDOW_HEIGHT*.8, 0, 75);
+        ofSetColor(0, 75, 75);
+        ofDrawCircle(Constants::WINDOW_WIDTH*3/5, Constants::WINDOW_HEIGHT*.8, 0, 75);
+        ofSetColor(75, 0, 75);
+        ofDrawCircle(Constants::WINDOW_WIDTH*4/5, Constants::WINDOW_HEIGHT*.8, 0, 75);
+        
+
+        /*  This section includes many "Magin numbers", these are many random numbers that correlate to 
+            image size ratios to ensure all images are kept the same size, the remainder are lerped variables
+            to ensure audio feedback is seen in images, the large divisors are organized sequentially and
+            used to reset image locations after scaling. These are not worth storing */
+
+        ofSetColor(75);
+        ofPushMatrix();
+            ofScale(0.45);
+            ofPushMatrix();
+                ofScale(0.39);
+                ofPushMatrix();
+                    ofScale(1 + (0.35 * m_smoothDrumsAnim));
+                    m_drumImage.draw((Constants::WINDOW_WIDTH*1/5) / (0.39 * 0.45 * (1 + 0.35 * m_smoothDrumsAnim)), (Constants::WINDOW_HEIGHT*.8)/ (0.39 * 0.45 * (1 + 0.35 * m_smoothDrumsAnim)));
+                ofPopMatrix();
+                ofPushMatrix();
+                    ofScale(1 + (0.35 * m_smoothLowVAnim));
+                    m_lowVImage.draw((Constants::WINDOW_WIDTH*2/5) / (0.39 * 0.45 * (1 + 0.35 * m_smoothLowVAnim)), (Constants::WINDOW_HEIGHT*.8)/ (0.39 * 0.45 * (1 + 0.35 * m_smoothLowVAnim)));
+                ofPopMatrix();
+                ofPushMatrix();
+                    ofScale(1 + (0.35 * m_smoothViolinAnim));
+                    m_violinImage.draw((Constants::WINDOW_WIDTH*4/5)/ (0.39 * 0.45 * (1 + 0.35 * m_smoothViolinAnim)), (Constants::WINDOW_HEIGHT*.8)/ (0.39 * 0.45 * (1 + 0.35 * m_smoothViolinAnim)));
+                ofPopMatrix();
+            ofPopMatrix();
+            ofPushMatrix();
+                ofScale(1 + (0.35 * m_smoothHighVAnim));
+                m_highVImage.draw((Constants::WINDOW_WIDTH*3/5)/ (0.45 * (1 + 0.35 * m_smoothHighVAnim)), (Constants::WINDOW_HEIGHT*.8)/ (0.45 * (1 + 0.35 * m_smoothHighVAnim)));
+            ofPopMatrix();
+        ofPopMatrix();
     }
-    
 }
 
 void ofApp::keyPressed(int key) {
@@ -190,9 +263,31 @@ void ofApp::keyPressed(int key) {
         visualizerState = !visualizerState;
     }
     if (visualizerState){
-        if (key == '1') (drumsPlaying) ? totalScore = (totalScore += 10.0f) * 1.25 : totalScore -= 0.0f;
+        if (key == '1') (drumsPlaying) ? totalScore = (totalScore += 10.0f) * 1.025 : totalScore -= 10.0f;
         if (key == '2') (lowVPlaying) ? totalScore = (totalScore += 3.0f) * 1.0125 : totalScore -= 25.0f;
-        if (key == '3') (highVPlaying) ? totalScore = (totalScore += 5.0f) * 1.05 : totalScore -= 15.0f;
+        if (key == '3') (highVPlaying) ? totalScore = (totalScore += 5.0f) * 1.01 : totalScore -= 15.0f;
         if (key == '4') (violinPlaying) ? totalScore = (totalScore += 3.0f) * 1.0125 : totalScore -= 35.0f;
+    }
+}
+
+void ofApp::setViolinScaleState(Constants::SONG_STAGES stage){
+    switch(stage){
+        case 0:
+            m_smoothViolinScale = ofLerp(m_smoothViolinScale, 0.75, 0.0125);
+            break;
+        case 1:
+            m_smoothViolinScale = ofLerp(m_smoothViolinScale, 0.5, 0.0125);
+            break;
+        case 2:
+            m_smoothViolinScale = ofLerp(m_smoothViolinScale, 0.25, 0.0075);
+            break;
+        case 3:
+            m_smoothViolinScale = ofLerp(m_smoothViolinScale, 1.25, 0.025);
+            break;
+        case 4:
+            m_smoothViolinScale = ofLerp(m_smoothViolinScale, 1.0, 0.0125);
+            break;
+        default:
+            break;
     }
 }

@@ -20,7 +20,7 @@ public:
         pos += vel;
         life -= dt;
     }
-
+    
     void draw() {
         float alpha = ofMap(life, 0, maxLife, 0, 255);
         ofSetColor(200, 200, 200, alpha);
